@@ -90,6 +90,7 @@ $(document).ready(function () {
 
         for (var key in oggettoIntermedio) {
             nomiVenditori.push(key);
+            oggettoIntermedio[key] = ((Math.round(oggettoIntermedio[key]) / 118940) * 100).toFixed(0);
             fatturatoVenditori.push(oggettoIntermedio[key]);
         }
         console.log(nomiVenditori);
@@ -105,6 +106,16 @@ $(document).ready(function () {
                 }],
                 labels: nomiVenditori
             },
+            options: {
+                responsive: true,
+                tooltips: {
+                  callbacks: {
+                    label: function(tooltipItem, data) {
+                      return data['labels'][tooltipItem['index']] + ': ' + data['datasets'][0]['data'][tooltipItem['index']] + '%';
+                    }
+                  }
+                }
+            }
         });
     });
 });
