@@ -23,7 +23,7 @@ $(document).ready(function () {
             'novembre': 0,
             'dicembre': 0
         };
-
+//----------------- INIZIO COSTRUTTORE DATI PRIMO GRAFICO-----------------------//
         for (var i = 0; i < vendite.length; i++) {
             var vendita = vendite[i];
             // console.log(vendita);           // mostro l oggetto della singola vendita
@@ -47,7 +47,10 @@ $(document).ready(function () {
             mesi.push(key);
             fatturato.push(oggettoIntermedio[key]);
         }
+//----------------- FINE COSTRUTTORE DATI PRIMO GRAFICO-----------------------//
 
+
+//------------------------- PRIMO GRAFICO LINE--------------------------------//
         var ctx = $('#grafico');
         var chart = new Chart(ctx, {
 
@@ -59,16 +62,18 @@ $(document).ready(function () {
                 borderColor: 'lightgreen',
                 pointBackgroundColor: 'red',
                 pointBorderColor: 'lightblue',
+                lineTension: 0,
                 data: fatturato
             }]
         },
     });
-
+//------------------------- FINE PRIMO GRAFICO LINE---------------------------//
     $.ajax(settings).done(function (response) {
         var vendite = response;
 
         var oggettoIntermedio = {};
 
+//----------------- INIZIO COSTRUTTORE DATI PRIMO GRAFICO-----------------------//
         for (var i = 0; i < vendite.length; i++) {
             var vendita = vendite[i];
             // console.log(vendita);           // mostro l oggetto della singola vendita
@@ -81,7 +86,7 @@ $(document).ready(function () {
             if (oggettoIntermedio[nomeVenditore] === undefined) {
                 oggettoIntermedio[nomeVenditore] = 0;
             }
-            console.log(oggettoIntermedio);
+            // console.log(oggettoIntermedio);
             oggettoIntermedio[nomeVenditore] += vendita.amount;
         }
 
@@ -90,12 +95,15 @@ $(document).ready(function () {
 
         for (var key in oggettoIntermedio) {
             nomiVenditori.push(key);
-            oggettoIntermedio[key] = ((Math.round(oggettoIntermedio[key]) / 118940) * 100).toFixed(0);
+            // console.log(oggettoIntermedio[key]);
+            oggettoIntermedio[key] = ((Math.floor(oggettoIntermedio[key]) / 118940) * 100).toFixed(2);
             fatturatoVenditori.push(oggettoIntermedio[key]);
         }
-        console.log(nomiVenditori);
-        console.log(fatturatoVenditori);
+        // console.log(nomiVenditori);
+        // console.log(fatturatoVenditori);
+//----------------- FINE COSTRUTTORE DATI PRIMO GRAFICO-----------------------//
 
+//------------------------- PRIMO GRAFICO PIE--------------------------------//
         var ctx = $('#grafico2');
         var chart = new Chart(ctx, {
             type: 'pie',
@@ -117,6 +125,7 @@ $(document).ready(function () {
                 }
             }
         });
+//------------------------- FINE PRIMO GRAFICO PIE---------------------------//
     });
 });
 
