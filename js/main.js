@@ -1,34 +1,39 @@
 $(document).ready(function () {
 
-function acquisizioneDati() {
     $('button').click(function () {
+        acquisizioneDati();
+
+    });
+
+    function acquisizioneDati() {
         var venditoreSelezionato = $('#venditore option:selected').text();
         var dataSelezionata = $('#data').val();
         dataSelezionata = moment(dataSelezionata).format('DD/MM/YYYY');
         // var meseVendita = moment(dataSelezionata).format('DD/MM/YYYY');
         // console.log(meseVendita);
         var inputFatturato = parseInt($('#fatturato').val());
-        console.log(inputFatturato);
         var objDati = {
             salesman: venditoreSelezionato,
             amount: inputFatturato,
             date: dataSelezionata
-
         }
         console.log(objDati);
-    })
-};
-acquisizioneDati();
+        $.ajax({
+            url: "http://157.230.17.132:4018/sales",
+            method: "POST",
+            data: objDati
+        });
+    }
 
+// acquisizioneDati();
 
-
-    var settings = {
+    var settingsGet = {
       "url": "http://157.230.17.132:4018/sales",
       "method": "GET",
       "timeout": 0,
     };
 
-    $.ajax(settings).done(function (response) {
+    $.ajax(settingsGet).done(function (response) {
         var vendite = response;
 
         var oggettoIntermedio = {
@@ -59,7 +64,7 @@ acquisizioneDati();
                 oggettoIntermedio[meseVendita] = 0;
             }
             // console.log(oggettoIntermedio);
-            oggettoIntermedio[meseVendita] += vendita.amount;
+            oggettoIntermedio[meseVendita] += parseInt(vendita.amount);
         }
 
         var mesi = [];
@@ -91,7 +96,7 @@ acquisizioneDati();
     });
     });
 //------------------------- FINE PRIMO GRAFICO LINE---------------------------//
-    $.ajax(settings).done(function (response) {
+    $.ajax(settingsGet).done(function (response) {
         var vendite = response;
 
         var oggettoIntermedio = {};
@@ -105,12 +110,12 @@ acquisizioneDati();
             // console.log(vendita.amount);    // mostro il totale della singola vendita
             // console.log(vendita.date);      // mostro la data singola vendita
             var nomeVenditore = vendita.salesman;
-            var fatturatoVenditore = vendita.amount
+            var fatturatoVenditore = parseInt(vendita.amount);
             if (oggettoIntermedio[nomeVenditore] === undefined) {
                 oggettoIntermedio[nomeVenditore] = 0;
             }
             // console.log(oggettoIntermedio);
-            oggettoIntermedio[nomeVenditore] += vendita.amount;
+            oggettoIntermedio[nomeVenditore] += parseInt(vendita.amount);
         }
 
         var nomiVenditori = [];
@@ -124,7 +129,7 @@ acquisizioneDati();
         }
         // console.log(nomiVenditori);
         // console.log(fatturatoVenditori);
-//----------------- FINE COSTRUTTORE DATI PRIMO GRAFICO-----------------------//
+//----------------- FINE COSTRUTTORE DATI SECONDO GRAFICO-----------------------//
 
 //------------------------- PRIMO GRAFICO PIE--------------------------------//
         var ctx = $('#grafico2');
