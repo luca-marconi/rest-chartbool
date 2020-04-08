@@ -1,5 +1,27 @@
 $(document).ready(function () {
 
+function acquisizioneDati() {
+    $('button').click(function () {
+        var venditoreSelezionato = $('#venditore option:selected').text();
+        var dataSelezionata = $('#data').val();
+        dataSelezionata = moment(dataSelezionata).format('DD/MM/YYYY');
+        // var meseVendita = moment(dataSelezionata).format('DD/MM/YYYY');
+        // console.log(meseVendita);
+        var inputFatturato = parseInt($('#fatturato').val());
+        console.log(inputFatturato);
+        var objDati = {
+            salesman: venditoreSelezionato,
+            amount: inputFatturato,
+            date: dataSelezionata
+
+        }
+        console.log(objDati);
+    })
+};
+acquisizioneDati();
+
+
+
     var settings = {
       "url": "http://157.230.17.132:4018/sales",
       "method": "GET",
@@ -67,6 +89,7 @@ $(document).ready(function () {
             }]
         },
     });
+    });
 //------------------------- FINE PRIMO GRAFICO LINE---------------------------//
     $.ajax(settings).done(function (response) {
         var vendite = response;
@@ -127,20 +150,5 @@ $(document).ready(function () {
         });
 //------------------------- FINE PRIMO GRAFICO PIE---------------------------//
     });
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 });
