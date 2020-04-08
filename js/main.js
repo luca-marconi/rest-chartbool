@@ -1,11 +1,13 @@
 $(document).ready(function () {
 
     $('button').click(function () {
-        acquisizioneDati();
-
+        acquisizioneEInvioDati();
+    });
+    $('#aggiorna').click(function () {
+        location.reload(true);
     });
 
-    function acquisizioneDati() {
+    function acquisizioneEInvioDati() {
         var venditoreSelezionato = $('#venditore option:selected').text();
         var dataSelezionata = $('#data').val();
         dataSelezionata = moment(dataSelezionata).format('DD/MM/YYYY');
@@ -35,7 +37,6 @@ $(document).ready(function () {
 
     $.ajax(settingsGet).done(function (response) {
         var vendite = response;
-
         var oggettoIntermedio = {
             'gennaio': 0,
             'febbraio': 0,
@@ -74,6 +75,7 @@ $(document).ready(function () {
             mesi.push(key);
             fatturato.push(oggettoIntermedio[key]);
         }
+
 //----------------- FINE COSTRUTTORE DATI PRIMO GRAFICO-----------------------//
 
 
