@@ -1,148 +1,147 @@
 $(document).ready(function () {
 
-    $('button').click(function () {
-        acquisizioneEInvioDati();
-    });
-    $('#aggiorna').click(function () {
-        location.reload(true);
-    });
+    var baseUrl = "http://157.230.17.132:4018/sales";
+    stampaGrafici();
 
-    function acquisizioneEInvioDati() {
-        var venditoreSelezionato = $('#venditore option:selected').text();
-        var dataSelezionata = $('#data').val();
-        dataSelezionata = moment(dataSelezionata).format('DD/MM/YYYY');
-        // var meseVendita = moment(dataSelezionata).format('DD/MM/YYYY');
-        // console.log(meseVendita);
-        var inputFatturato = parseInt($('#fatturato').val());
-        var objDati = {
-            salesman: venditoreSelezionato,
-            amount: inputFatturato,
-            date: dataSelezionata
-        }
-        console.log(objDati);
-        $.ajax({
-            url: "http://157.230.17.132:4018/sales",
-            method: "POST",
-            data: objDati
+    $('button').click(function () {
+        var nomeVenditore = $('#venditore').val();
+        var dataVendita = $('#data').val();
+        var dataVenditaFormattata = moment(dataVendita, 'YYYY-MM-DD').format('DD/MM/YYYY');
+        var vendita = $('#fatturato').val();
+        $.ajax ({
+            url: baseUrl,
+            method: 'POST',
+            data : {
+                salesman: nomeVenditore,
+                amount: vendita,
+                date: dataVenditaFormattata
+            },
+            success: function (data) {
+                console.log(data);
+                stampaGrafici();
+            },
+            error: function (err) {
+                alert('errore');
+            }
+        });
+    })
+
+    function stampaGrafici() {
+        $('#container-grafico').empty();
+        $('#container-grafico').append('<canvas id="grafico"></canvas><canvas id="grafico2"></canvas>');
+        $.ajax ({
+            url: baseUrl,
+            method: 'GET',
+            success: function (data) { // data è un array di oggetti
+                // elaboro i dati ricevuti dal server per fare 2 array
+                // do in pasto a chartjs i 2 array
+                var datiMensili = costruttoreDatiMensili(data); // elaboriamo i dati della GET per renderli digeribili da chartjs (ritorna un oggetto)
+                createLineChart(datiMensili.mese, datiMensili.vendite); // diamo in pasto a chartjs la labels e data ricavati dall oggetto datiMensili
+                var fatturato = fatturatoTotale(data);
+                var datiVenditori = costruttoreDatiVenditori(data, fatturato);
+                createPieChart(datiVenditori.venditori, datiVenditori.vendite);
+
+            },
+            error: function (err) {
+                alert('Errore Api');
+            }
         });
     }
 
-// acquisizioneDati();
+    function costruttoreDatiMensili(vendite) {
+        var venditeMensili = {
+            gennaio: 0,
+            febbraio: 0,
+            marzo: 0,
+            aprile: 0,
+            maggio: 0,
+            giugno: 0,
+            luglio: 0,
+            agosto: 0,
+            settembre: 0,
+            ottobre: 0,
+            novembre: 0,
+            dicembre: 0
+        };
+        for (var i = 0; i < vendite.length; i++) {  //ciclo nelle vendite che ho ricevuto dal GET per aggiungere .amount all'oggetto venditeMensili
+            var vendita = vendite[i];               // valuto ogni singola vendita
+            var dataVendita = vendita.date;         // estrapolo la data dall oggetto vendita
+            var meseVendita = moment(dataVendita, 'DD/MM/YYYY').format('MMMM');     // trasformo la data in mese
+            venditeMensili[meseVendita] += parseInt(vendita.amount);        // uso il nome del mese ricavato per riconoscore le chiave nell oggetto vendite mensili e aggiungere a questa la vendita appartenente a quel mese
+        }
+        var arrayMesi = [];     // inizializzo l array per chartJS
+        var arrayVendite = [];  // inizializzo l array per chartJS
+        for (var nomeMese in venditeMensili) {  // ciclo all interno dell oggetto venditeMensili per trasformare la coppia chiave-valore in due array da dare a chartjs
+            arrayMesi.push(nomeMese);           // inserisco il nome del mese nell arrayMesi
+            arrayVendite.push(venditeMensili[nomeMese]);    // inserisco nell arrayVendite la somma di tutte le vendite del relativo mese
+        }
+        return {
+            mese: arrayMesi,
+            vendite: arrayVendite
+        };
+    }
 
-    var settingsGet = {
-      "url": "http://157.230.17.132:4018/sales",
-      "method": "GET",
-      "timeout": 0,
+    function fatturatoTotale(vendite) {
+        var fatturato = 0;
+        for (var i = 0; i < vendite.length; i++) {
+            var vendita = vendite[i];
+            fatturato += parseInt(vendita.amount);
+        }
+        return fatturato;
+    }
+
+    function costruttoreDatiVenditori(vendite, fatturatoAziendale) {
+        var venditeVenditori = {};  // creazione oggetto vuoto che assumerà la somme delle vendite annuali di ogni singolo venditore
+        for (var i = 0; i < vendite.length; i++) {  // ciclo for nell array della GET
+            var vendita = vendite[i];   // consideto il singolo oggetto dell array
+            var nomeVenditore = vendita.salesman;   // associo a una variabile il nome del venditore
+            if (venditeVenditori[nomeVenditore] === undefined) {    // se non esiste una chiave con il nome di quel venditore
+                venditeVenditori[nomeVenditore] = 0;                // inizializzo la chiave con valore 0
+            }
+            venditeVenditori[nomeVenditore] += parseInt(vendita.amount);    // sommo la vendita dell'oggetto attuale a quel venditore
+        }
+        var arrayVenditori = [];
+        var arrayVendite = [];
+        for (var nomeVenditore in venditeVenditori) {
+            arrayVenditori.push(nomeVenditore);
+            var fatturatoPercentualeVenditore = ((venditeVenditori[nomeVenditore] / fatturatoAziendale) * 100).toFixed(2);
+            arrayVendite.push(fatturatoPercentualeVenditore);
+        }
+        return {
+            venditori: arrayVenditori,
+            vendite: arrayVendite
+        }
     };
 
-    $.ajax(settingsGet).done(function (response) {
-        var vendite = response;
-        var oggettoIntermedio = {
-            'gennaio': 0,
-            'febbraio': 0,
-            'marzo': 0,
-            'aprile': 0,
-            'maggio': 0,
-            'giugno': 0,
-            'luglio': 0,
-            'agosto': 0,
-            'settembre': 0,
-            'ottobre': 0,
-            'novembre': 0,
-            'dicembre': 0
-        };
-//----------------- INIZIO COSTRUTTORE DATI PRIMO GRAFICO-----------------------//
-        for (var i = 0; i < vendite.length; i++) {
-            var vendita = vendite[i];
-            // console.log(vendita);           // mostro l oggetto della singola vendita
-            // console.log(vendita.id);        // mostro l id della singola vendita
-            // console.log(vendita.salesman);  // mostro il venditore della singola vendita
-            // console.log(vendita.amount);    // mostro il totale della singola vendita
-            // console.log(vendita.date);      // mostro la data singola vendita
-            var dataVendita = moment(vendita.date, 'DD-MM-YYYY');
-            var meseVendita = dataVendita.format('MMMM');
-            if (oggettoIntermedio[meseVendita] === undefined) {
-                oggettoIntermedio[meseVendita] = 0;
-            }
-            // console.log(oggettoIntermedio);
-            oggettoIntermedio[meseVendita] += parseInt(vendita.amount);
-        }
-
-        var mesi = [];
-        var fatturato = [];
-
-        for (var key in oggettoIntermedio) {
-            mesi.push(key);
-            fatturato.push(oggettoIntermedio[key]);
-        }
-
-//----------------- FINE COSTRUTTORE DATI PRIMO GRAFICO-----------------------//
-
-
-//------------------------- PRIMO GRAFICO LINE--------------------------------//
+    function createLineChart(labels, data) {
         var ctx = $('#grafico');
         var chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Fatturato Mesi',
+                    borderColor: 'lightgreen',
+                    pointBackgroundColor: 'red',
+                    pointBorderColor: 'lightblue',
+                    lineTension: 0,
+                    data: data
+                }]
+            },
+        });
+    }
 
-        type: 'line',
-        data: {
-            labels: mesi,
-            datasets: [{
-                label: 'Fatturato Mesi',
-                borderColor: 'lightgreen',
-                pointBackgroundColor: 'red',
-                pointBorderColor: 'lightblue',
-                lineTension: 0,
-                data: fatturato
-            }]
-        },
-    });
-    });
-//------------------------- FINE PRIMO GRAFICO LINE---------------------------//
-    $.ajax(settingsGet).done(function (response) {
-        var vendite = response;
-
-        var oggettoIntermedio = {};
-
-//----------------- INIZIO COSTRUTTORE DATI PRIMO GRAFICO-----------------------//
-        for (var i = 0; i < vendite.length; i++) {
-            var vendita = vendite[i];
-            // console.log(vendita);           // mostro l oggetto della singola vendita
-            // console.log(vendita.id);        // mostro l id della singola vendita
-            // console.log(vendita.salesman);  // mostro il venditore della singola vendita
-            // console.log(vendita.amount);    // mostro il totale della singola vendita
-            // console.log(vendita.date);      // mostro la data singola vendita
-            var nomeVenditore = vendita.salesman;
-            var fatturatoVenditore = parseInt(vendita.amount);
-            if (oggettoIntermedio[nomeVenditore] === undefined) {
-                oggettoIntermedio[nomeVenditore] = 0;
-            }
-            // console.log(oggettoIntermedio);
-            oggettoIntermedio[nomeVenditore] += parseInt(vendita.amount);
-        }
-
-        var nomiVenditori = [];
-        var fatturatoVenditori = [];
-
-        for (var key in oggettoIntermedio) {
-            nomiVenditori.push(key);
-            // console.log(oggettoIntermedio[key]);
-            oggettoIntermedio[key] = ((Math.floor(oggettoIntermedio[key]) / 118940) * 100).toFixed(2);
-            fatturatoVenditori.push(oggettoIntermedio[key]);
-        }
-        // console.log(nomiVenditori);
-        // console.log(fatturatoVenditori);
-//----------------- FINE COSTRUTTORE DATI SECONDO GRAFICO-----------------------//
-
-//------------------------- PRIMO GRAFICO PIE--------------------------------//
+    function createPieChart(arrayLabels, arrayData) {
         var ctx = $('#grafico2');
-        var chart = new Chart(ctx, {
+        var pieChart = new Chart(ctx, {
             type: 'pie',
             data: {
                 datasets: [{
-                    data: fatturatoVenditori,
-                    backgroundColor: ['lightyellow', 'lightgreen', 'lightcoral', 'lightblue']
+                    data: arrayData,
+                    backgroundColor: ['Red', 'Yellow','Blue', 'Green'],
+                    hoverBackgroundColor: ['lightcoral', 'khaki', 'lightblue', 'lightgreen']
                 }],
-                labels: nomiVenditori
+                labels: arrayLabels
             },
             options: {
                 responsive: true,
@@ -155,7 +154,5 @@ $(document).ready(function () {
                 }
             }
         });
-//------------------------- FINE PRIMO GRAFICO PIE---------------------------//
-    });
-
+    }
 });

@@ -9,7 +9,7 @@
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js" charset="utf-8"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/locale/it.js" charset="utf-8"></script>
-		    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 	</head>
 	<body>
 
@@ -17,24 +17,22 @@
 		<div class="container-input">
 			<label for="venditore">Seleziona il venditore</label>
 				<select id="venditore">
-				  <option value="marco">Marco</option>
-				  <option value="giuseppe">Giuseppe</option>
-				  <option value="riccardo">Riccardo</option>
-				  <option value="roberto">Roberto</option>
+				  <option value="Marco">Marco</option>
+				  <option value="Giuseppe">Giuseppe</option>
+				  <option value="Riccardo">Riccardo</option>
+				  <option value="Roberto">Roberto</option>
 				</select>
 			<label for="data">Seleziona la data</label>
-				<input id='data' type="date" name="" value="">
+				<input id='data' type="date" value="2017-01-01" min='2017-01-01' max='2017-12-31'>
 			<label for="fatturato">Inserisci il fatturato</label>
-				<input  id='fatturato' type="number" name="" value="">
+				<input  id='fatturato' type="number" value="1000">
 				<button type="button" name="invio-dati">Invia Dati</button>
-				<button id='aggiorna' type="button" name="invio-dati">Aggiorna</button>
 		</div>
-        <canvas id="grafico"></canvas>
     </div>
-    <div class="container">
+    <div class="container-grafico">
+		<canvas id="grafico"></canvas>
         <canvas id="grafico2"></canvas>
     </div>
-
 
     <script src="js/main.js"></script>
   </body>
